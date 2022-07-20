@@ -1,0 +1,17 @@
+{
+	"astyle.cmd_options": [
+		"--style=break",
+        "--indent=spaces=2",
+        "--pad-oper",
+        "--pad-paren-in",
+        "--pad-header",
+		"--pad-excludes=TEXT|_T|RETAILMSG|DEBUGMSG|R_TRACE|D_TRACE|R_ASSERT|D_ASSERT|R_TRACE_METHOD|D_TRACE_METHOD|return",
+        "--break-closing-brackets",
+        "--add-brackets",
+        "--convert-tabs",
+        "--align-pointer=type",
+        "--align-reference=type",
+        "--keep-one-line-blocks",
+        "--max-instatement-indent=80"
+    ]
+}
