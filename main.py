@@ -1,30 +1,76 @@
 import subprocess
 import json
+import argparse
 
-astyle_cmd_path = "./AStyle/AStyle.exe"
+def create_path(path_name):
+    if (path_name == "astyle_exe_path"):
+        print("Paste path to your AStyle.exe (For example: .\AStyle\AStyle.exe or C:\AStyle\AStyle.exe)")
+    elif (path_name == "repo_path"):
+        print("Paste path to your local repository")
+    else:
+        print("Paste path to " + path_name)
+
+    path = input()
+    json_string = {path_name:path}
+
+    with open('settings.json') as f:
+        json_file = json.load(f)
+
+    json_file.update(json_string)
+
+    with open('settings.json', 'w') as f:
+        json.dump(json_file, f, indent=4)
+    return(path)
+
+def check_settings(settings):
+    if ("astyle_exe_path" not in settings.keys()):
+        settings.update({"astyle_exe_path":create_path("astyle_exe_path")})
+
+    if ("repo_path" not in settings.keys()):
+        settings.update({"repo_path":create_path("repo_path")})
+    
 astyle_cmd_options = ""
-repo_path = "C:/Users/kamil.szczepaniak/source/repos/security"
-results_filtered = []
+git_output_filtered = []
 file_paths = []
 
-
-results = subprocess.check_output("git status", cwd=repo_path).decode().replace(" ", "").split()
-results = [i for i in results if 'modified' in i]
-
-for i in results:
-    if ".h" in i:
-        results_filtered.append(i.replace("modified:", "/"))
-    if '.cpp' in i:
-        results_filtered.append(i.replace("modified:", "/"))
-
-for i in results_filtered:
-    file_paths.append(repo_path + i)
+parser = argparse.ArgumentParser(description="Just an example", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument("-s", "--source", type=str, help="path to AStyle.exe")
+parser.add_argument("-d", "--destination", type=str, help="path to local repository")
+args = parser.parse_args()
+config = vars(args)
+print(config)
 
 f = open('settings.json')
-data = json.load(f)
+settings = json.load(f)
+f.close()
 
-for i in data['astyle.cmd_options']:
+check_settings(settings)
+
+if(config["source"]):
+    settings["astyle_exe_path"] = config["source"]
+
+if(config["destination"]):
+    settings["repo_path"] = config["destination"]
+
+for i in settings['astyle.cmd_options']:
     astyle_cmd_options += " " + i
 
+astyle_exe_path = settings["astyle_exe_path"]
+repo_path = settings["repo_path"]
+
+git_output = subprocess.check_output("git status", cwd=repo_path).decode().replace(" ", "").split()
+git_output = [i for i in git_output if 'modified' in i]
+
+for i in git_output:
+    if ".h" in i:
+        git_output_filtered.append(i.replace("modified:", "/"))
+    if '.cpp' in i:
+        git_output_filtered.append(i.replace("modified:", "/"))
+    if '.hpp' in i:
+        git_output_filtered.append(i.replace("modified:", "/"))
+
+for i in git_output_filtered:
+    file_paths.append(repo_path + i)
+
 for i in file_paths:
-    subprocess.run(astyle_cmd_path + astyle_cmd_options + " " + i)
+    subprocess.run(astyle_exe_path + astyle_cmd_options + " " + i)
