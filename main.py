@@ -2,15 +2,16 @@ import subprocess
 import json
 import argparse
 
-def create_path(path_name):
-    if (path_name == "astyle_exe_path"):
-        print("Paste path to your AStyle.exe (For example: .\AStyle\AStyle.exe or C:\AStyle\AStyle.exe)")
-    elif (path_name == "repo_path"):
-        print("Paste path to your local repository")
-    else:
-        print("Paste path to " + path_name)
+def create_path(path_name, path=0):
+    if(path == 0):
+        if (path_name == "astyle_exe_path"):
+            print("Paste path to your AStyle.exe (For example: .\AStyle\AStyle.exe or C:\AStyle\AStyle.exe)")
+        elif (path_name == "repo_path"):
+            print("Paste path to your local repository")
+        else:
+            print("Paste path to " + path_name)
+        path = input()
 
-    path = input()
     json_string = {path_name:path}
 
     with open('settings.json') as f:
@@ -22,12 +23,18 @@ def create_path(path_name):
         json.dump(json_file, f, indent=4)
     return(path)
 
-def check_settings(settings):
+def check_settings(settings, config):
     if ("astyle_exe_path" not in settings.keys()):
-        settings.update({"astyle_exe_path":create_path("astyle_exe_path")})
+        if(config["source"]):
+            settings.update( { "astyle_exe_path":create_path("astyle_exe_path", config["source"]) } )
+        else:
+            settings.update({"astyle_exe_path":create_path("astyle_exe_path")})
 
     if ("repo_path" not in settings.keys()):
-        settings.update({"repo_path":create_path("repo_path")})
+        if(config["destination"]):
+            settings.update({"repo_path":create_path("astyle_exe_path", config["destination"])})
+        else:
+            settings.update({"repo_path":create_path("repo_path")})
     
 astyle_cmd_options = ""
 git_output_filtered = []
@@ -38,19 +45,12 @@ parser.add_argument("-s", "--source", type=str, help="path to AStyle.exe")
 parser.add_argument("-d", "--destination", type=str, help="path to local repository")
 args = parser.parse_args()
 config = vars(args)
-print(config)
 
 f = open('settings.json')
 settings = json.load(f)
 f.close()
 
-check_settings(settings)
-
-if(config["source"]):
-    settings["astyle_exe_path"] = config["source"]
-
-if(config["destination"]):
-    settings["repo_path"] = config["destination"]
+check_settings(settings, config)
 
 for i in settings['astyle.cmd_options']:
     astyle_cmd_options += " " + i
