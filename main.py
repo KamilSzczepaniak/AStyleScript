@@ -1,6 +1,28 @@
 import subprocess
 import json
 import argparse
+from os.path import exists
+
+def create_settings_json():
+    f = open('settings.json', 'w')
+    settings_table = [
+        "--style=break",
+        "--indent=spaces=2",
+        "--pad-oper",
+        "--pad-paren-in",
+        "--pad-header",
+        "--pad-excludes=TEXT|_T|RETAILMSG|DEBUGMSG|R_TRACE|D_TRACE|R_ASSERT|D_ASSERT|R_TRACE_METHOD|D_TRACE_METHOD|return",
+        "--break-closing-brackets",
+        "--add-brackets",
+        "--convert-tabs",
+        "--align-pointer=type",
+        "--align-reference=type",
+        "--keep-one-line-blocks",
+        "--max-instatement-indent=80"
+    ]
+    data={"astyle_cmd_options":settings_table}
+    json.dump(data, f, indent=4)
+    f.close()
 
 def create_path(path_name, path=0):
     if(path == 0):
@@ -46,6 +68,9 @@ parser.add_argument("-d", "--destination", type=str, help="path to local reposit
 args = parser.parse_args()
 config = vars(args)
 
+if(not exists('settings.json')):
+    create_settings_json()
+    
 f = open('settings.json')
 settings = json.load(f)
 f.close()
